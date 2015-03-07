@@ -51,13 +51,13 @@ TtsPlugin.prototype.speak = function(text) {
     );
 }
 
-TtsPlugin.prototype.stopSpeaking = function() {
+TtsPlugin.prototype.stop = function() {
     exec(function(result){
         },
         function(error){
         },
         "TtsPlugin",
-        "stopSpeaking",
+        "stop",
         []
     );
 }

@@ -25,4 +25,4 @@ ttsPlugin.initTTS(successCallBack, failCallBack); // Init Plugin : failCallBack 
 
 ttsPlugin.speak("Hello"); // Say Hello
 
-ttsPlugin.stopSpeaking(); // Try to stop speaking
+ttsPlugin.stop(); // Stop speaking
