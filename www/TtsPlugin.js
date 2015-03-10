@@ -85,4 +85,4 @@ tts.prototype.resume = function() {
 }
 
 var tts = new tts();
-module.exports = tts
+module.exports = tts;
