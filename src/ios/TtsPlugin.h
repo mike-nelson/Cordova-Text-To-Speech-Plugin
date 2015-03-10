@@ -8,5 +8,7 @@
 - (void)setLanguage:(CDVInvokedUrlCommand*)command;
 - (void)speak:(CDVInvokedUrlCommand*)command;
 - (void)stop:(CDVInvokedUrlCommand*)command;
+- (void)pause:(CDVInvokedUrlCommand*)command;
+- (void)resume:(CDVInvokedUrlCommand*)command;
 
 @end

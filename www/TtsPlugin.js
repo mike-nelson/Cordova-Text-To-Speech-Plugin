@@ -62,5 +62,27 @@ TtsPlugin.prototype.stop = function() {
     );
 }
 
+TtsPlugin.prototype.pause = function() {
+    exec(function(result){
+        },
+        function(error){
+        },
+        "TtsPlugin",
+        "stop",
+        []
+    );
+}
+
+TtsPlugin.prototype.continue = function() {
+    exec(function(result){
+        },
+        function(error){
+        },
+        "TtsPlugin",
+        "stop",
+        []
+    );
+}
+
 var ttsPlugin = new TtsPlugin();
 module.exports = ttsPlugin
