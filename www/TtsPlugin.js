@@ -2,9 +2,9 @@ var exec = require('cordova/exec');
 /**
  * Constructor
  */
-function TtsPlugin() {}
+function tts() {}
 
-TtsPlugin.prototype.initTTS = function(successCallBack, failCallBack) {
+tts.prototype.init = function(successCallBack, failCallBack) {
     exec(function(result){
             successCallBack();
         },
@@ -17,7 +17,7 @@ TtsPlugin.prototype.initTTS = function(successCallBack, failCallBack) {
     );
 }
 
-TtsPlugin.prototype.setLanguage = function(lang) {
+tts.prototype.setLanguage = function(lang) {
     exec(function(result){
         },
         function(error){
@@ -28,7 +28,7 @@ TtsPlugin.prototype.setLanguage = function(lang) {
     );
 }
 
-TtsPlugin.prototype.setRate = function(rate) {
+tts.prototype.setRate = function(rate) {
     exec(function(result){
         },
         function(error){
@@ -40,7 +40,7 @@ TtsPlugin.prototype.setRate = function(rate) {
 }
 
 
-TtsPlugin.prototype.speak = function(text) {
+tts.prototype.speak = function(text) {
     exec(function(result){
         },
         function(error){
@@ -51,7 +51,7 @@ TtsPlugin.prototype.speak = function(text) {
     );
 }
 
-TtsPlugin.prototype.stop = function() {
+tts.prototype.stop = function() {
     exec(function(result){
         },
         function(error){
@@ -62,27 +62,27 @@ TtsPlugin.prototype.stop = function() {
     );
 }
 
-TtsPlugin.prototype.pause = function() {
+tts.prototype.pause = function() {
     exec(function(result){
         },
         function(error){
         },
         "TtsPlugin",
-        "stop",
+        "pause",
         []
     );
 }
 
-TtsPlugin.prototype.continue = function() {
+tts.prototype.resume = function() {
     exec(function(result){
         },
         function(error){
         },
         "TtsPlugin",
-        "stop",
+        "resume",
         []
     );
 }
 
-var ttsPlugin = new TtsPlugin();
+var tts = new tts();
 module.exports = ttsPlugin
