@@ -6,10 +6,14 @@ function tts() {}
 
 tts.prototype.init = function(successCallBack, failCallBack) {
     exec(function(result){
-        successCallBack();
+        if(successCallBack){
+            successCallBack();
+        }
     },
     function(error){
-        failCallBack();
+        if(failCallBack){
+            failCallBack();
+        }
     },
     "TtsPlugin",
     "initTTS",
@@ -42,6 +46,7 @@ tts.prototype.setRate = function(rate) {
 
 tts.prototype.speak = function(text) {
     exec(function(result){
+        console.log("tts -  speak:",result);
     },
     function(error){
     },
@@ -53,6 +58,7 @@ tts.prototype.speak = function(text) {
 
 tts.prototype.stop = function() {
     exec(function(result){
+        console.log("tts -  stop:",result);
     },
     function(error){
     },
@@ -64,6 +70,7 @@ tts.prototype.stop = function() {
 
 tts.prototype.pause = function() {
     exec(function(result){
+        console.log("tts -  pause:",result);
     },
     function(error){
     },
@@ -75,11 +82,24 @@ tts.prototype.pause = function() {
 
 tts.prototype.resume = function() {
     exec(function(result){
+        console.log("tts -  resume:",result);
     },
     function(error){
     },
     "TtsPlugin",
     "resume",
+    []
+    );
+}
+
+tts.prototype.restart = function() {
+    exec(function(result){
+        console.log("tts -  restart:",result);
+    },
+    function(error){
+    },
+    "TtsPlugin",
+    "restart",
     []
     );
 }

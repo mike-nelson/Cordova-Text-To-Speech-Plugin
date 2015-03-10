@@ -43,28 +43,24 @@ double rate = .2;
 }
 
 - (void)stop:(CDVInvokedUrlCommand*)command{
-    // [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     [synth stopSpeakingAtBoundary:AVSpeechBoundaryWord];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void)pause:(CDVInvokedUrlCommand*)command{
-    // [synth pauseSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     [synth pauseSpeakingAtBoundary:AVSpeechBoundaryWord];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void)resume:(CDVInvokedUrlCommand*)command{
-    // [synth pauseSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     [synth continueSpeaking];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)reset:(CDVInvokedUrlCommand*)command{
-    // [synth pauseSpeakingAtBoundary:AVSpeechBoundaryImmediate];
+- (void)restart:(CDVInvokedUrlCommand*)command{
     [synth continueSpeaking];
     [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
