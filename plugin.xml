@@ -3,16 +3,16 @@
 <plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
     id="com.lefortsoftware.ttsplugin"
     version="0.1.0">
-    <name>TtsPlugin</name>   
+    <name>tts</name>   
     <!-- ios -->
     <platform name="ios">    
         <config-file target="config.xml" parent="/*">
             <feature name="TtsPlugin">
-                <param name="ios-package" value="TtsPlugin" /> 
+                <param name="ios-package" value="tts" /> 
             </feature>
         </config-file>
-        <js-module src="www/TtsPlugin.js" name="TtsPlugin">
-            <clobbers target="ttsPlugin" />
+        <js-module src="www/TtsPlugin.js" name="tts">
+            <clobbers target="tts" />
         </js-module>
         <header-file src="src/ios/TtsPlugin.h" />
 	    <source-file src="src/ios/TtsPlugin.m" />
@@ -30,7 +30,7 @@
         </config-file>
 
         <config-file target="res/xml/config.xml" parent="widget">
-            <feature name="TtsPlugin">
+            <feature name="tts">
                 <param name="android-package" value="com.lefortsoftware.ttsplugin.TtsPlugin" />
             </feature>
         </config-file>
@@ -39,7 +39,7 @@
                      target-dir="src/com/lefortsoftware"/>
 
         <js-module src="www/TtsPlugin.js" name="tts">
-            <clobbers target="ttsPlugin" />
+            <clobbers target="tts" />
         </js-module>
 
     </platform>
