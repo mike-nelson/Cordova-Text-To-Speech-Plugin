@@ -14,6 +14,7 @@
 
         TextToSpeech tts;
         CallbackContext cbc;
+        String[] txtArr;
 
         @Override
         public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -48,7 +49,9 @@
 
         if(action.equals("speak")){
         String txt = args.getString(0);
+        txtArr = txtArr;//spit and run through each word. JC TODO 10 Mar 2015
         tts.speak(txt, TextToSpeech.QUEUE_ADD, null);
+
         callbackContext.success("OK");
         return true;
         }
