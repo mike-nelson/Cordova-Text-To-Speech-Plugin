@@ -43,13 +43,13 @@ double rate = .2;
 }
 
 - (void)stop:(CDVInvokedUrlCommand*)command{
-    [synth stopSpeakingAtBoundary:AVSpeechBoundaryWord];
+    [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void)pause:(CDVInvokedUrlCommand*)command{
-    [synth pauseSpeakingAtBoundary:AVSpeechBoundaryWord];
+    [synth pauseSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
