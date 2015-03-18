@@ -1,4 +1,4 @@
-    package com.lefortsoftware.ttsplugin;
+    package nz.co.cavej03.ttsplugin;
 
         import org.apache.cordova.CallbackContext;
         import org.apache.cordova.CordovaPlugin;
