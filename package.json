@@ -1,6 +1,6 @@
 {
     "version": "0.1.0",
-    "name": "com.lefortsoftware.ttsplugin",
+    "name": "nz.co.beweb.ttsplugin",
     "cordova_name": "TtsPlugin",
     "description": "Text to speech plugin",
     "license": "Apache 2.0",
@@ -13,7 +13,6 @@
         "speech"
     ],
     "platforms": [
-        "android",
         "ios"
     ],
     "engines": [
