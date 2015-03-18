@@ -7,7 +7,7 @@ A very small text to speech plugin for Cordova3 / Ios
 ##INSTALLATION
 
 In your Cordova project directory : 
-cordova plugin add https://github.com/steevelefort/cordova3-ios-tts-plugin
+cordova plugin add https://github.com/cavej03/cordova3-ios-tts-plugin
 
 Verify if you config.xml file contains :
 
