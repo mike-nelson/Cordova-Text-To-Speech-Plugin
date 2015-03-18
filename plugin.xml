@@ -1,46 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
-    id="com.lefortsoftware.ttsplugin"
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="nz.co.beweb.ttsplugin"
     version="0.1.0">
-    <name>TtsPlugin</name>   
+    <name>TtsPlugin</name>
+	<description>Text to speech plugin</description>
+	<license>Apache 2.0</license>
+	<keywords>cordova,tts,text,speech</keywords>
+	<repo>https://github.com/cavej03/cordova3-ios-tts-plugin.git</repo>
+	<issue>https://github.com/cavej03/cordova3-ios-tts-plugin</issue>
+    <engines>
+      <engine name="cordova" version=">=3.1.0" />
+    </engines>
     <!-- ios -->
     <platform name="ios">    
+        <js-module src="www/TtsPlugin.js" name="TtsPlugin">
+            <clobbers target="ttsPlugin" />
+        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="TtsPlugin">
                 <param name="ios-package" value="TtsPlugin" /> 
             </feature>
         </config-file>
-        <js-module src="www/TtsPlugin.js" name="TtsPlugin">
-            <clobbers target="ttsPlugin" />
-        </js-module>
         <header-file src="src/ios/TtsPlugin.h" />
         <source-file src="src/ios/TtsPlugin.m" />
         <framework src="AVFoundation.framework" />
         <framework src="Foundation.framework" />
     </platform>
 
-    <!-- android -->
-    <platform name="android">
-        <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <activity android:name="com.lefortsoftware.ttsplugin"
-                      android:label="@string/app_name">
-                <intent-filter></intent-filter>
-            </activity>
-        </config-file>
-
-        <config-file target="res/xml/config.xml" parent="widget">
-            <feature name="TtsPlugin">
-                <param name="android-package" value="com.lefortsoftware.ttsplugin.TtsPlugin" />
-            </feature>
-        </config-file>
-
-        <source-file src="src/android/com/lefortsoftware/TtsPlugin.java"
-                     target-dir="src/com/lefortsoftware"/>
-
-        <js-module src="www/TtsPlugin.js" name="TtsPlugin">
-            <clobbers target="ttsPlugin" />
-        </js-module>
-
-    </platform>
+    
 </plugin>
