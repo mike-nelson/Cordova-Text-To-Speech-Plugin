@@ -50,7 +50,7 @@ double rate = .2;
 
 - (void)getSpeechStatus:(CDVInvokedUrlCommand*)command{
     bool isSpeaking = [synth isSpeaking];
-    bool isPaused = [synth isSpeaking];
+    bool isPaused = [synth isPaused];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopped"];
      //NSString *speechStatus = @"stopped";
 
