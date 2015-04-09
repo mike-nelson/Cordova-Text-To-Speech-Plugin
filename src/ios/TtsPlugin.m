@@ -51,17 +51,15 @@ double rate = .2;
 - (void)getSpeechStatus:(CDVInvokedUrlCommand*)command{
     bool isSpeaking = [synth isSpeaking];
     bool isPaused = [synth isSpeaking];
-    CDVPluginResult* pluginResult = nil;
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopped"];
      //NSString *speechStatus = @"stopped";
 
     if (isSpeaking && isPaused){
         // *speechStatus = @"paused";
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"paused"];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"paused"];
     }else if(isSpeaking){
         // *speechStatus = @"speaking";
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"speaking"];
-    }else{
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopped"];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"speaking"];
     }
 
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
