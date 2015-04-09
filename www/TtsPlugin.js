@@ -58,7 +58,7 @@ tts.prototype.speak = function(text) {
     );
 };
 
-tts.prototype.isSpeaking = function(callback) { //because this is asynchronous we need to pass a callback 
+tts.prototype.getSpeechStatus = function(callback) { //because this is asynchronous we need to pass a callback 
     exec(function(result){
         if(callback){
             callback(result);
@@ -69,7 +69,7 @@ tts.prototype.isSpeaking = function(callback) { //because this is asynchronous w
         console.error(error);
     },
     "TtsPlugin",
-    "isSpeaking",
+    "getSpeechStatus",
     []
     );
 };
