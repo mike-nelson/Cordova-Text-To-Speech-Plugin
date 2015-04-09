@@ -57,12 +57,15 @@ tts.prototype.speak = function(text) {
     );
 };
 
-tts.prototype.isSpeaking = function() {
+tts.prototype.isSpeaking = function(callback) { //because this is asynchronous we need to pass a callback 
     exec(function(result){
+        if(callback){
+            callback(result);
+        }
         return result;
     },
     function(error){
-        return error;
+        console.error(error);
     },
     "TtsPlugin",
     "isSpeaking",
