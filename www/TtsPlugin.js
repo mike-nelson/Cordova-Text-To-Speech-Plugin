@@ -57,6 +57,20 @@ tts.prototype.speak = function(text) {
     );
 };
 
+tts.prototype.isSpeaking = function(text) {
+    exec(function(result){
+        document.dispatchEvent(new CustomEvent('ttsIsSpeakinSpeakSuccess', result));
+        return result;
+    },
+    function(error){
+        document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
+    },
+    "TtsPlugin",
+    "isSpeaking",
+    []
+    );
+};
+
 tts.prototype.stop = function() {
     exec(function(result){
         document.dispatchEvent(new CustomEvent('ttsStopSuccess', result));
