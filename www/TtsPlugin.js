@@ -57,13 +57,11 @@ tts.prototype.speak = function(text) {
     );
 };
 
-tts.prototype.isSpeaking = function(text) {
+tts.prototype.isSpeaking = function() {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsIsSpeakinSpeakSuccess', result));
-        return result;
+        console.log(result)
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
     },
     "TtsPlugin",
     "isSpeaking",
