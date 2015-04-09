@@ -59,9 +59,10 @@ tts.prototype.speak = function(text) {
 
 tts.prototype.isSpeaking = function() {
     exec(function(result){
-        console.log(result)
+        return result;
     },
     function(error){
+        return error;
     },
     "TtsPlugin",
     "isSpeaking",
