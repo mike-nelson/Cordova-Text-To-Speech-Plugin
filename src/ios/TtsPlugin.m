@@ -51,7 +51,7 @@ double rate = .2;
 - (void)getSpeechStatus:(CDVInvokedUrlCommand*)command{
     bool isSpeaking = [synth isSpeaking];
     bool isPaused = [synth isSpeaking];
-    NSString *speechStatus = @"stopped";
+    NSMutableString *speechStatus = @"stopped";
 
     if (isSpeaking && isPaused){
         *speechStatus = @"paused";
