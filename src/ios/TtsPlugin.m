@@ -56,12 +56,12 @@ double rate = .2;
 
     if (isSpeaking && isPaused){
         // *speechStatus = @"paused";
-        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"paused"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"paused"];
     }else if(isSpeaking){
         // *speechStatus = @"speaking";
-        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"speaking"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"speaking"];
     }else{
-        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopped"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"stopped"];
     }
 
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
