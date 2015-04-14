@@ -6,10 +6,10 @@ function tts() {}
 
 tts.prototype.init = function() {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsInitSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsInitSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsInitFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsInitFailed', result));
     },
     "TtsPlugin",
     "initTTS",
@@ -19,10 +19,10 @@ tts.prototype.init = function() {
 
 tts.prototype.setLanguage = function(lang) {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsSetLanguageSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsSetLanguageSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsSetLanguageFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsSetLanguageFailed', result));
     },
     "TtsPlugin",
     "setLanguage",
@@ -32,10 +32,10 @@ tts.prototype.setLanguage = function(lang) {
 
 tts.prototype.setRate = function(rate) {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsSetRateSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsSetRateSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsSetRateFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsSetRateFailed', result));
     },
     "TtsPlugin",
     "setRate",
@@ -47,10 +47,10 @@ tts.prototype.setRate = function(rate) {
 tts.prototype.speak = function(text) {
     exec(function(result){
         console.log(result);
-        document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
     },
     "TtsPlugin",
     "speak",
@@ -63,7 +63,6 @@ tts.prototype.getSpeechStatus = function(callback) { //because this is asynchron
         if(callback){
             callback(result);
         }
-        return result;
     },
     function(error){
         console.error(error);
@@ -76,10 +75,10 @@ tts.prototype.getSpeechStatus = function(callback) { //because this is asynchron
 
 tts.prototype.stop = function() {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsStopSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsStopSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsStopFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsStopFailed', result));
     },
     "TtsPlugin",
     "stop",
@@ -89,10 +88,10 @@ tts.prototype.stop = function() {
 
 tts.prototype.pause = function() {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsPauseSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsPauseSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsPauseFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsPauseFailed', result));
     },
     "TtsPlugin",
     "pause",
@@ -102,10 +101,10 @@ tts.prototype.pause = function() {
 
 tts.prototype.resume = function() {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsResumeSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsResumeSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsResumeFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsResumeFailed', result));
     },
     "TtsPlugin",
     "resume",
@@ -115,15 +114,33 @@ tts.prototype.resume = function() {
 
 tts.prototype.restart = function() {
     exec(function(result){
-        document.dispatchEvent(new CustomEvent('ttsRestartSuccess', result));
+        // document.dispatchEvent(new CustomEvent('ttsRestartSuccess', result));
     },
     function(error){
-        document.dispatchEvent(new CustomEvent('ttsRestartFailed', result));
+        // document.dispatchEvent(new CustomEvent('ttsRestartFailed', result));
     },
     "TtsPlugin",
     "restart",
     []
     );
+};
+
+tts.prototype.events = {
+    finishedSpeaking: function(){
+        console.log("Finished Speaking");
+    },
+    cancelledSpeaking: function(){
+        console.log("Cancelled Speaking");
+    },
+    continuedSpeaking: function(){
+        console.log("Continued Speaking");
+    },
+    pausedSpeaking: function(){
+        console.log("Paused Speaking");
+    },
+    startedSpeaking: function(){
+        console.log("Started Speaking");
+    }
 };
 
 var tts = new tts();

@@ -9,6 +9,8 @@ double rate = .2;
 
 - (void)initTTS:(CDVInvokedUrlCommand*)command{
     synth = [[AVSpeechSynthesizer alloc] init];
+    synth.delegate = self;
+
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -38,6 +40,7 @@ double rate = .2;
     utterance.voice = [AVSpeechSynthesisVoice voiceWithLanguage:lang];
     utterance.rate = rate;
     [synth speakUtterance:utterance];
+
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:text];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -82,6 +85,27 @@ double rate = .2;
     [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didStartSpeechUtterance:(AVSpeechUtterance *)utterance{
+    NSLog(@"Started Speaking");
+    [self.commandDelegate evalJs:@"ttsPlugin.events.startedSpeaking()"];
+}
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance{
+    NSLog(@"Stopped Speaking");
+    [self.commandDelegate evalJs:@"ttsPlugin.events.finishedSpeaking()"];
+}
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didPauseSpeechUtterance:(AVSpeechUtterance *)utterance{
+    NSLog(@"Paused Speaking");
+    [self.commandDelegate evalJs:@"ttsPlugin.events.pausedSpeaking()"];
+}
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didContinueSpeechUtterance:(AVSpeechUtterance *)utterance{
+    NSLog(@"Continued Speaking");
+    [self.commandDelegate evalJs:@"ttsPlugin.events.continuedSpeaking()"];
+}
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didCancelSpeechUtterance:(AVSpeechUtterance *)utterance{
+    NSLog(@"Cancelled Speaking");
+    [self.commandDelegate evalJs:@"ttsPlugin.events.cancelledSpeaking()"];
 }
 
 @end
