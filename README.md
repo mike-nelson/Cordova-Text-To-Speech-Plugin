@@ -60,3 +60,7 @@ Verify if you config.xml file contains :
 
 Big thanks to steevelefort who created the original plugin - found here: 
 https://github.com/steevelefort/cordova3-ios-tts-plugin
+
+### Todo
+
+- Android Version
