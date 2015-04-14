@@ -5,13 +5,14 @@ A small text to speech plugin for Cordova3 / iOS
 ### Installation
 
 In your Cordova project directory : 
-cordova plugin add https://github.com/cavej03/cordova3-ios-tts-plugin
+
+cordova plugin add https://github.com/cavej03/Cordova-Text-To-Speech-Plugin.git
 
 Verify if you config.xml file contains :
 
-&lt;feature name="TtsPlugin"&gt;
-	    &lt;param name="ios-package" value="TtsPlugin" /&gt;
-&lt;/feature&gt;
+    <feature name="TtsPlugin">
+        <param name="ios-package" value="TtsPlugin">
+    </feature>
 
 ### How to use
 
