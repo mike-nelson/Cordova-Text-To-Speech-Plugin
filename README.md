@@ -53,10 +53,10 @@ Verify if you config.xml file contains :
     }
 
 ### Status
-		ttsPlugin.getStatus(function(status){
-			//change this callback
-			console.log(status)
-		})
+    ttsPlugin.getStatus(function(status){
+        //change this callback
+        console.log(status)
+    })
 
 Big thanks to steevelefort who created the original plugin - found here: 
 https://github.com/steevelefort/cordova3-ios-tts-plugin
