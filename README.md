@@ -1,6 +1,5 @@
 #Cordova iOS Text to Speech Plugin
 =======================
-
 A small text to speech plugin for Cordova3 / iOS
 
 ### Installation
