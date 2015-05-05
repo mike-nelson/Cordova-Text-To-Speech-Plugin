@@ -8,12 +8,6 @@ In your Cordova project directory :
 
 cordova plugin add https://github.com/cavej03/Cordova-Text-To-Speech-Plugin.git
 
-Verify if you config.xml file contains :
-
-    <feature name="TtsPlugin">
-        <param name="ios-package" value="TtsPlugin">
-    </feature>
-
 ### How to use
 
     ttsPlugin.setRate(rate); // Set voice speed : default is "0.2"
