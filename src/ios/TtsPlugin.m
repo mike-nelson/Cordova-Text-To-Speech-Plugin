@@ -89,23 +89,28 @@ double rate = .2;
 
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didStartSpeechUtterance:(AVSpeechUtterance *)utterance{
     NSLog(@"Started Speaking");
-    [self.commandDelegate evalJs:@"ttsPlugin.events.startedSpeaking()"];
+    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.startedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance{
     NSLog(@"Stopped Speaking");
-    [self.commandDelegate evalJs:@"ttsPlugin.events.finishedSpeaking()"];
+    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didPauseSpeechUtterance:(AVSpeechUtterance *)utterance{
     NSLog(@"Paused Speaking");
-    [self.commandDelegate evalJs:@"ttsPlugin.events.pausedSpeaking()"];
+    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.pausedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didContinueSpeechUtterance:(AVSpeechUtterance *)utterance{
     NSLog(@"Continued Speaking");
-    [self.commandDelegate evalJs:@"ttsPlugin.events.continuedSpeaking()"];
+    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.continuedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didCancelSpeechUtterance:(AVSpeechUtterance *)utterance{
     NSLog(@"Cancelled Speaking");
-    [self.commandDelegate evalJs:@"ttsPlugin.events.cancelledSpeaking()"];
+    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.cancelledSpeaking()"];
+}
+- (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer willSpeakRangeOfSpeechString:(NSRange)characterRange utterance:(AVSpeechUtterance *)utterance{
+    NSLog(@"willSpeakRangeOfSpeechString: %@", NSStringFromRange(characterRange));
+    NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.currentRangeOfSpeech(\"%@\")",NSStringFromRange(characterRange)];
+    [self.commandDelegate evalJs:jsString];
 }
 
 @end

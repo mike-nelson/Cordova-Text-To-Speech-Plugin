@@ -125,7 +125,7 @@ tts.prototype.restart = function() {
     );
 };
 
-tts.prototype.events = {
+tts.prototype.callbacks = {
     finishedSpeaking: function(){
         console.log("Finished Speaking");
     },
@@ -140,6 +140,9 @@ tts.prototype.events = {
     },
     startedSpeaking: function(){
         console.log("Started Speaking");
+    },
+    currentRangeOfSpeech: function(textrangefromnsrange){
+        console.log("currentRangeOfSpeech", textrangefromnsrange);
     }
 };
 
