@@ -32,25 +32,29 @@ Verify if you config.xml file contains :
 
 
 ### Events
-    ttsPlugin.events.finishedSpeaking = function(){
+    ttsPlugin.callbacks.finishedSpeaking = function(){
         //override with your own functions
         console.log("Finished Speaking");
     },
-    ttsPlugin.events.cancelledSpeaking = function(){
+    ttsPlugin.callbacks.cancelledSpeaking = function(){
         //override with your own functions
         console.log("Cancelled Speaking");
     },
-    ttsPlugin.events.continuedSpeaking = function(){
+    ttsPlugin.callbacks.continuedSpeaking = function(){
         //override with your own functions
         console.log("Continued Speaking");
     },
-    ttsPlugin.events.pausedSpeaking = function(){
+    ttsPlugin.callbacks.pausedSpeaking = function(){
         //override with your own functions
         console.log("Paused Speaking");
     },
-    ttsPlugin.events.startedSpeaking = function(){
+    ttsPlugin.callbacks.startedSpeaking = function(){
         //override with your own functions
         console.log("Started Speaking");
+    }
+    ttsPlugin.callbacks.currentRangeOfSpeech = function(range){
+        //override with your own functions
+        console.log("currentRangeOfSpeech", range);
     }
 
 ### Status
