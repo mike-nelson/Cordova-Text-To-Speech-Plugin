@@ -6,7 +6,7 @@ A small text to speech plugin for Cordova3 / iOS
 
 In your Cordova project directory : 
 
-`cordova plugin add https://github.com/cavej03/Cordova-Text-To-Speech-Plugin.git`
+`cordova plugin add https://github.com/mike-nelson/Cordova-Text-To-Speech-Plugin.git`
 
 ### How to use
 
