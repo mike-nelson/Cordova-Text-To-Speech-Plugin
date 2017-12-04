@@ -43,10 +43,41 @@ tts.prototype.setRate = function(rate) {
     );
 };
 
+tts.prototype.getVoices = function(callback) { //because this is asynchronous we need to pass a callback 
+    exec(function(result){
+        if(callback){
+            callback(result);
+        }
+    },
+    function(error){
+        console.error(error);
+    },
+    "TtsPlugin",
+    "getVoices",
+    []
+    );
+};
+
+
+tts.prototype.setVoice = function(text) {
+    exec(function(result){
+        //console.log(result);
+        // document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
+    },
+    function(error){
+        // document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
+    },
+    "TtsPlugin",
+    "setVoice",
+    [text]
+    );
+};
+
+
 
 tts.prototype.speak = function(text) {
     exec(function(result){
-        console.log(result);
+        //console.log(result);
         // document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
     },
     function(error){
@@ -143,6 +174,9 @@ tts.prototype.callbacks = {
     },
     currentRangeOfSpeech: function(textrangefromnsrange){
         console.log("currentRangeOfSpeech", textrangefromnsrange);
+    },
+    audioRouteChanged: function(routeDescription){
+    	console.log("audioRouteChanged", routeDescription);
     }
 };
 
