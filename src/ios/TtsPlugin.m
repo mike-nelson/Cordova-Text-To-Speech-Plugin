@@ -27,16 +27,17 @@ NSString *currentLocale;
         [session setMode:AVAudioSessionModeSpokenAudio error:nil];
     }
     
-    for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
-        /*NSLog(@"voice: %@", voice.language);*/
-        NSString *language = voice.language;
-        
-        if ([language isEqualToString:currentLocale]){
-            /*NSLog(@"setting voice to locale: %@", currentLocale);*/
-            globalVoice = voice;
+    if ([AVSpeechSynthesisVoice speechVoices]!=nil){
+        for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
+            /*NSLog(@"voice: %@", voice.language);*/
+            NSString *language = voice.language;
+
+            if ([language isEqualToString:currentLocale]){
+                /*NSLog(@"setting voice to locale: %@", currentLocale);*/
+                globalVoice = voice;
+            }
         }
     }
-    
     
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -66,36 +67,37 @@ NSString *currentLocale;
     /*NSLog(@"setting voice to locale: coolbeans");*/
     
     NSMutableArray *stringArray = [[NSMutableArray alloc] init];
-    for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
-        NSString *nameAndLocale = [voice.name stringByAppendingString:@"["];
-        nameAndLocale = [nameAndLocale stringByAppendingString:voice.language];
-        nameAndLocale = [nameAndLocale stringByAppendingString:@"]"];
-        [stringArray addObject:nameAndLocale];
+    if ([AVSpeechSynthesisVoice speechVoices]!=nil){	
+        for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
+            NSString *nameAndLocale = [voice.name stringByAppendingString:@"["];
+            nameAndLocale = [nameAndLocale stringByAppendingString:voice.language];
+            nameAndLocale = [nameAndLocale stringByAppendingString:@"]"];
+            [stringArray addObject:nameAndLocale];
+        }
     }
-    
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:stringArray] callbackId:command.callbackId];
 }
 
 - (void)setVoice:(CDVInvokedUrlCommand*)command{
     NSString* text = [command.arguments objectAtIndex:0];
     
-    for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
-        /*NSLog(@"voice: %@", voice.language);
-        NSLog(@"name: %@", voice.name);*/
-        //NSString *language = voice.language;
-        NSString *name = voice.name;
-        
-        if ([name isEqualToString:text]){
-            /*NSLog(@"setting voice to locale: %@", currentLocale);*/
-            globalVoice = voice;
+    if ([AVSpeechSynthesisVoice speechVoices]!=nil){	
+        for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
+            /*NSLog(@"voice: %@", voice.language);
+            NSLog(@"name: %@", voice.name);*/
+            //NSString *language = voice.language;
+            NSString *name = voice.name;
+
+            if ([name isEqualToString:text]){
+                /*NSLog(@"setting voice to locale: %@", currentLocale);*/
+                globalVoice = voice;
+            }
+    //        if ([language isEqualToString:text]){
+    //            NSLog(@"setting voice to locale: %@", currentLocale);
+    //            globalVoice = voice;
+    //        }
+
         }
-        
-//        
-//        if ([language isEqualToString:text]){
-//            NSLog(@"setting voice to locale: %@", currentLocale);
-//            globalVoice = voice;
-//        }
-        
     }
     
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:globalVoice.language];
