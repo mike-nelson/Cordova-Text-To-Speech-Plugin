@@ -2,13 +2,13 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="nz.co.beweb.ttsplugin"
-    version="0.3.0">
+    version="0.3.1">
     <name>TtsPlugin</name>
 	<description>Text to speech plugin</description>
 	<license>Apache 2.0</license>
 	<keywords>cordova,tts,text,speech</keywords>
-	<repo>https://github.com/cavej03/cordova3-ios-tts-plugin.git</repo>
-	<issue>https://github.com/cavej03/cordova3-ios-tts-plugin</issue>
+	<repo>https://github.com/mike-nelson/cordova3-ios-tts-plugin.git</repo>
+	<issue>https://github.com/mike-nelson/cordova3-ios-tts-plugin</issue>
     <engines>
       <engine name="cordova" version=">=3.1.0" />
     </engines>
