@@ -75,6 +75,21 @@ tts.prototype.setVoice = function(text) {
 
 
 
+tts.prototype.speak2 = function(text) {
+    alert("speak2")
+    exec(function(result){
+        //console.log(result);
+        // document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
+    },
+    function(error){
+        // document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
+    },
+    "TtsPlugin",
+    "speak",
+    [text]
+    );
+};
+
 tts.prototype.speak = function(text) {
     exec(function(result){
         //console.log(result);
