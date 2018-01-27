@@ -1,6 +1,6 @@
 {
     "name": "nz.co.beweb.ttsplugin",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "cordova_name": "TtsPlugin",
     "description": "Text to speech plugin",
     "license": "Apache 2.0",
