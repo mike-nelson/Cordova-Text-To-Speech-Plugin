@@ -4,6 +4,8 @@
 @interface TtsPlugin : CDVPlugin <AVSpeechSynthesizerDelegate>
 
 - (void)initTTS:(CDVInvokedUrlCommand*)command;
+- (void)setAudioSessionPlayAndRecord:(CDVInvokedUrlCommand*)command;
+- (void)setAudioSessionPlayback:(CDVInvokedUrlCommand*)command;
 - (void)setRate:(CDVInvokedUrlCommand*)command;
 - (void)setLanguage:(CDVInvokedUrlCommand*)command;
 - (void)setVoice:(CDVInvokedUrlCommand*)command;

@@ -17,6 +17,22 @@ tts.prototype.init = function() {
     );
 };
 
+tts.prototype.setAudioSessionPlayback = function(successCallback, errorCallback) {
+    exec(successCallback, errorCallback,
+    "TtsPlugin",
+    "setAudioSessionPlayback",
+    []
+    );
+};
+
+tts.prototype.setAudioSessionPlayAndRecord = function(successCallback, errorCallback) {
+    exec(successCallback, errorCallback,
+    "TtsPlugin",
+    "setAudioSessionPlayAndRecord",
+    []
+    );
+};
+
 tts.prototype.setLanguage = function(lang) {
     exec(function(result){
         // document.dispatchEvent(new CustomEvent('ttsSetLanguageSuccess', result));
@@ -192,7 +208,10 @@ tts.prototype.callbacks = {
     },
     audioRouteChanged: function(routeDescription){
     	console.log("audioRouteChanged", routeDescription);
-    }
+    },
+    handleMediaServerReset: function(){
+    	console.log("handleMediaServerReset");
+    },
 };
 
 var tts = new tts();

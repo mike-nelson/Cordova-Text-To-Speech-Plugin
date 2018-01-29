@@ -33,7 +33,7 @@ NSString *currentLocale;
     //}
 //     [session setMode:AVAudioSessionModeVoiceChat error:nil];
   
-    [self initAudioSession];
+ //   [self initAudioSession:command];
     
 //    for (AVSpeechSynthesisVoice *voice in [AVSpeechSynthesisVoice speechVoices]) {
 //        NSString *language = voice.language;
@@ -43,7 +43,13 @@ NSString *currentLocale;
 //        }
 //    }
     
-    
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    // track route change notification
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleRouteChange:)
+                                                 name:AVAudioSessionRouteChangeNotification
+                                               object:audioSession];
+
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -62,8 +68,8 @@ NSString *currentLocale;
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
     @catch (NSException * e) {
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"ERROR"];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"ERROR"];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }
     //@finally { }
 }
@@ -85,6 +91,8 @@ NSString *currentLocale;
     @catch (NSException *exception) {
         // i think there is an error in iOS 10.2.1
         NSLog(@"%@", exception.reason);
+        [self sendErrorWithMessage:@"getVoices crash" sourceMessage:exception.reason command:command];
+        return;
     }
     
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:stringArray] callbackId:command.callbackId];
@@ -113,26 +121,58 @@ NSString *currentLocale;
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-
-- (void)initAudioSession{
-    AVAudioSession *session = [AVAudioSession sharedInstance];
+- (void)setAudioSessionPlayAndRecord:(CDVInvokedUrlCommand*)command{
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *error;
-    bool success = true;
-    	    success = [session setCategory:AVAudioSessionCategoryPlayAndRecord
-    	                  withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
-    	                        error:&error];
-    	    if (!success) NSLog(@"Error setting setCategory! %@\n", [error localizedDescription]);
-    if (&AVAudioSessionModeSpokenAudio!=nil){
-              [session setMode:AVAudioSessionModeSpokenAudio error:nil];
+    bool success = [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
+                                       mode:AVAudioSessionModeVideoChat
+                                    options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
+                                      error:&error];
+    if (!success) {
+        NSLog(@"setAudioSessionPlayAndRecord Error setting setCategory! %@\n", [error localizedDescription]);
+        [self sendErrorWithMessage:@"TTS setAudioSessionPlayAndRecord: Error setting setCategory" sourceMessage:error.localizedDescription command:command];
+        return;
+    }else{
+        [self jlog:@"setAudioSessionPlayAndRecord init audio session success"];
     }
-    success = [session setActive:YES error:&error];
-    if (!success) NSLog(@"Error setting session active! %@\n", [error localizedDescription]);
+    [self jlog:@"setAudioSessionPlayAndRecord looking for bluetooth handsfree"];
+    NSArray* routes = [audioSession availableInputs];
+    for (AVAudioSessionPortDescription* route in routes) {
+        if (route.portType == AVAudioSessionPortBluetoothHFP) {
+            [self jlog:@"setAudioSessionPlayAndRecord found bluetooth handsfree"];
+            [audioSession setPreferredInput:route error:nil];
+        }
+    }
+    
+    success = [audioSession setActive:YES error:&error];
+    if (!success) {
+        NSLog(@"setAudioSessionPlayAndRecord Error setting session active! %@\n", [error localizedDescription]);
+        [self sendErrorWithMessage:@"TTS setAudioSessionPlayAndRecord: Error setting audio session active" sourceMessage:error.localizedDescription command:command];
+        return;
+    }
+}
 
-    // track route change notification
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handleRouteChange:)
-                                                 name:AVAudioSessionRouteChangeNotification
-                                               object:session];
+- (void)setAudioSessionPlayback:(CDVInvokedUrlCommand*)command{
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    NSError *error;
+    bool success = [audioSession setCategory:AVAudioSessionCategoryPlayback
+                                       mode:AVAudioSessionModeSpokenAudio
+                                    options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
+                                      error:&error];
+    if (!success) {
+        NSLog(@"setAudioSessionPlayback Error setting setCategory! %@\n", [error localizedDescription]);
+        [self sendErrorWithMessage:@"TTS setAudioSessionPlayback: Error setting setCategory" sourceMessage:error.localizedDescription command:command];
+        return;
+    }else{
+        [self jlog:@"init audio session success"];
+    }
+    
+    success = [audioSession setActive:YES error:&error];
+    if (!success) {
+        NSLog(@"setAudioSessionPlayback Error setting session active! %@\n", [error localizedDescription]);
+        [self sendErrorWithMessage:@"TTS setAudioSessionPlayback: Error setting audio session active" sourceMessage:error.localizedDescription command:command];
+        return;
+    }
 }
 
 - (void)handleRouteChange:(NSNotification *)notification
@@ -191,33 +231,29 @@ NSString *currentLocale;
     }
     
     if (notify){
-        NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.audioRouteChanged(\"%@\",\"%@\",\"%@\",\"%@\")",inputName,inputType,outputName,outputType];
+        NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.audioRouteChanged(\"%@\",\"%@\",\"%@\",\"%@\",\"%hhu\")",inputName,inputType,outputName,outputType,reasonValue];
         [self.commandDelegate evalJs:jsString];
     }
 }
 
 - (void)handleMediaServerReset:(NSNotification *)notification
 {
-    NSLog(@"Media server has reset");
+    [self jlog:@"Media server has reset"];
+    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleMediaServerReset()"];
 }
 
 - (void)speak:(CDVInvokedUrlCommand*)command{
     NSString* text = [command.arguments objectAtIndex:0];
     
     //if (true){
-    AVAudioSession *session = [AVAudioSession sharedInstance];
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *error;
-    bool success = true;
-    //	    success = [session setCategory:AVAudioSessionCategoryPlayAndRecord
-    //	                  withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
-    //	                        error:&error];
-    //	    if (!success) NSLog(@"Error setting setCategory! %@\n", [error localizedDescription]);
-    if (&AVAudioSessionModeSpokenAudio!=nil){
-        //      [session setMode:AVAudioSessionModeSpokenAudio error:nil];
+    bool success = [audioSession setActive:YES error:&error];
+    if (!success) {
+        NSLog(@"Error setting session active! %@\n", [error localizedDescription]);
+        [self sendErrorWithMessage:@"TTS speak: Error setting audio session active" sourceMessage:error.localizedDescription command:command];
+        return;
     }
-    //success = [session setActive:YES error:&error];
-    if (!success) NSLog(@"Error setting session active! %@\n", [error localizedDescription]);
-    //}
     
     //[synth volume];
 
@@ -306,7 +342,9 @@ NSString *currentLocale;
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance{
     NSLog(@"Finished Speaking %@", utterance.speechString);
-    [self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
+    NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.finishedSpeaking(\"%@\")",utterance.speechString];
+    [self.commandDelegate evalJs:jsString];
+    //[self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didPauseSpeechUtterance:(AVSpeechUtterance *)utterance{
     //NSLog(@"Paused Speaking %@", utterance);
@@ -323,6 +361,24 @@ NSString *currentLocale;
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer willSpeakRangeOfSpeechString:(NSRange)characterRange utterance:(AVSpeechUtterance *)utterance{
     //NSLog(@"willSpeakRangeOfSpeechString: %@", NSStringFromRange(characterRange));
     NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.currentRangeOfSpeech(\"%@\")",NSStringFromRange(characterRange)];
+    [self.commandDelegate evalJs:jsString];
+}
+
+-(void) sendErrorWithMessage:(NSString *)errorMessage sourceMessage:(NSString *)sourceMessage command:(CDVInvokedUrlCommand*)command
+{
+    //NSLog(@"recog report error: %@", errorMessage);
+    NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+    [event setValue:@"error" forKey:@"type"];
+    [event setValue:errorMessage forKey:@"message"];
+    [event setValue:sourceMessage forKey:@"sourceMessage"];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:event];
+    [pluginResult setKeepCallbackAsBool:NO];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+-(void) jlog:(NSString *)message
+{
+    NSString* jsString = [[NSString alloc] initWithFormat:@"window.jlog(\"TTS Plugin Log: %@\")",message];
     [self.commandDelegate evalJs:jsString];
 }
 
