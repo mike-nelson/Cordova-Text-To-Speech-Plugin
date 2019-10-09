@@ -4,12 +4,16 @@
 
 @implementation TtsPlugin
 
+// customised by Mike Nelson, beweb
+
 AVSpeechSynthesizer *synth;
 //NSString *lang = @"en-US";
 NSString *lang = @"en-US";
 AVSpeechSynthesisVoice *globalVoice;
 double rate = 0.2;
 NSString *currentLocale;
+NSString *currentSpeechText = @"nothing yet";
+NSString* currentSpeechCallbackId;
 
 - (void)initTTS:(CDVInvokedUrlCommand*)command{
     synth = [[AVSpeechSynthesizer alloc] init];
@@ -124,8 +128,10 @@ NSString *currentLocale;
 - (void)setAudioSessionPlayAndRecord:(CDVInvokedUrlCommand*)command{
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *error;
+	
+	//was AVAudioSessionModeVideoChat
     bool success = [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                                       mode:AVAudioSessionModeVideoChat
+                                       mode:AVAudioSessionModeVideoRecording
                                     options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
                                       error:&error];
     if (!success) {
@@ -143,6 +149,8 @@ NSString *currentLocale;
             [audioSession setPreferredInput:route error:nil];
         }
     }
+    
+    //[audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
     
     success = [audioSession setActive:YES error:&error];
     if (!success) {
@@ -224,6 +232,7 @@ NSString *currentLocale;
     if ([outputType isEqual:@"Receiver"]){
         bool success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
                                              error:&error];
+    
         if (success){
         // about to change again, correctly this time
             notify = false;
@@ -242,8 +251,14 @@ NSString *currentLocale;
     [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleMediaServerReset()"];
 }
 
+////////////////////////// commands ///////////////////////////////////////////
+
 - (void)speak:(CDVInvokedUrlCommand*)command{
     NSString* text = [command.arguments objectAtIndex:0];
+    NSLog(@"TTSPlugin - speak called: %@", text);
+    
+    currentSpeechCallbackId = command.callbackId;
+    currentSpeechText = text;
     
     //if (true){
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
@@ -270,15 +285,20 @@ NSString *currentLocale;
     //NSLog(@"current: %f", utterance.rate);
     
     [synth speakUtterance:utterance];
-
+    //NSLog(@"TTSPlugin - speak call done: %@", utterance.speechString);
+    
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
+    [pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void)stop:(CDVInvokedUrlCommand*)command{
-    //if (synth.isSpeaking){
+    NSLog(@"TTSPlugin - stop called");
+    currentSpeechText = @"cancelled speaking, dont callback on finished";
+    if (synth.isSpeaking){            // mn 2019 reintroduced this conditional
         [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
-    //}
+    }
+    
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -336,14 +356,29 @@ NSString *currentLocale;
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+///////////////////////////////// events //////////////////////////////////////////////////
+
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didStartSpeechUtterance:(AVSpeechUtterance *)utterance{
-    //NSLog(@"Started Speaking %@", utterance);
+    //NSLog(@"Started Speaking %@", utterance.speechString);
     [self.commandDelegate evalJs:@"ttsPlugin.callbacks.startedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance{
-    NSLog(@"Finished Speaking %@", utterance.speechString);
-    NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.finishedSpeaking(\"%@\")",utterance.speechString];
-    [self.commandDelegate evalJs:jsString];
+    if (utterance.speechString==currentSpeechText){
+        // mn 2018 - now only fires this callback if the most recently played speech is finished successfully - not after stop()
+        // otherwise previous speech callback fires milliseconds after stop() which can be after the next play()
+        NSLog(@"Finished Speaking %@", utterance.speechString);
+        //NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.finishedSpeaking(\"%@\")",utterance.speechString];
+        [self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
+
+        NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+        [event setValue:@"finishedSpeaking" forKey:@"type"];
+        [event setValue:utterance.speechString forKey:@"speechString"];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
+        [pluginResult setKeepCallbackAsBool:NO];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:currentSpeechCallbackId];
+    }else{
+        NSLog(@"Cancelled Speaking %@", utterance.speechString);
+    }
     //[self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didPauseSpeechUtterance:(AVSpeechUtterance *)utterance{
@@ -360,13 +395,22 @@ NSString *currentLocale;
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer willSpeakRangeOfSpeechString:(NSRange)characterRange utterance:(AVSpeechUtterance *)utterance{
     //NSLog(@"willSpeakRangeOfSpeechString: %@", NSStringFromRange(characterRange));
-    NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.currentRangeOfSpeech(\"%@\")",NSStringFromRange(characterRange)];
-    [self.commandDelegate evalJs:jsString];
+//    NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.currentRangeOfSpeech(\"%@\")",NSStringFromRange(characterRange)];
+//    [self.commandDelegate evalJs:jsString];
+  
+    NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+    [event setValue:@"currentRangeOfSpeech" forKey:@"type"];
+    [event setValue:NSStringFromRange(characterRange) forKey:@"currentText"];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
+    [pluginResult setKeepCallbackAsBool:YES];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:currentSpeechCallbackId];
+
+    
 }
 
 -(void) sendErrorWithMessage:(NSString *)errorMessage sourceMessage:(NSString *)sourceMessage command:(CDVInvokedUrlCommand*)command
 {
-    //NSLog(@"recog report error: %@", errorMessage);
+    NSLog(@"recog report error: %@", errorMessage);
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
     [event setValue:@"error" forKey:@"type"];
     [event setValue:errorMessage forKey:@"message"];
