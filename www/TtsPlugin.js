@@ -90,27 +90,13 @@ tts.prototype.setVoice = function(text) {
 };
 
 
-
-tts.prototype.speak2 = function(text) {
-    alert("speak2")
-    exec(function(result){
-        //console.log(result);
-        // document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
-    },
-    function(error){
-        // document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
-    },
-    "TtsPlugin",
-    "speak",
-    [text]
-    );
-};
-
-tts.prototype.speak = function(text) {
-    exec(function(result){
-        //console.log(result);
-        // document.dispatchEvent(new CustomEvent('ttsSpeakSuccess', result));
-    },
+/**
+ * @param {string} text - text to speak
+ * @param {function} callback - a function with param event, can be type 'finishedSpeaking'
+ * @example ttsPlugin.speak('hello', function(ev){if (ev.type=='finishedSpeaking'){ console.log('done') }})
+ */
+tts.prototype.speak = function(text, callback) {
+    exec(callback,
     function(error){
         // document.dispatchEvent(new CustomEvent('ttsSpeakFailed', result));
     },

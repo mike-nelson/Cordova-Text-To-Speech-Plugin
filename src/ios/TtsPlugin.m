@@ -14,6 +14,7 @@ double rate = 0.2;
 NSString *currentLocale;
 NSString *currentSpeechText = @"nothing yet";
 NSString* currentSpeechCallbackId;
+bool isDebug = NO;
 
 - (void)initTTS:(CDVInvokedUrlCommand*)command{
     synth = [[AVSpeechSynthesizer alloc] init];
@@ -188,7 +189,7 @@ NSString* currentSpeechCallbackId;
     UInt8 reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
     AVAudioSessionRouteDescription *routeDescription = [notification.userInfo valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
     
-    NSLog(@"Route change:");
+    if (isDebug) NSLog(@"Route change:");
     switch (reasonValue) {
         case AVAudioSessionRouteChangeReasonNewDeviceAvailable:
             NSLog(@"     NewDeviceAvailable");
@@ -217,10 +218,10 @@ NSString* currentSpeechCallbackId;
     NSError *error;
     
     AVAudioSessionRouteDescription *newRoute = session.currentRoute;
-    NSLog(@"Previous route:\n");
-    NSLog(@"%@\n", routeDescription);
-    NSLog(@"Current route:\n");
-    NSLog(@"%@\n", newRoute);
+    if (isDebug) NSLog(@"Previous route:\n");
+    if (isDebug) NSLog(@"%@\n", routeDescription);
+    if (isDebug) NSLog(@"Current route:\n");
+    if (isDebug) NSLog(@"%@\n", newRoute);
     AVAudioSessionPortDescription *inputPort = newRoute.inputs[0];
     NSString *inputName = inputPort.portName;
     NSString *inputType = inputPort.portType;
@@ -255,7 +256,7 @@ NSString* currentSpeechCallbackId;
 
 - (void)speak:(CDVInvokedUrlCommand*)command{
     NSString* text = [command.arguments objectAtIndex:0];
-    NSLog(@"TTSPlugin - speak called: %@", text);
+    if (isDebug) NSLog(@"TTSPlugin - speak called: %@", text);
     
     currentSpeechCallbackId = command.callbackId;
     currentSpeechText = text;
@@ -293,7 +294,7 @@ NSString* currentSpeechCallbackId;
 }
 
 - (void)stop:(CDVInvokedUrlCommand*)command{
-    NSLog(@"TTSPlugin - stop called");
+   if (isDebug)  NSLog(@"TTSPlugin - stop called");
     currentSpeechText = @"cancelled speaking, dont callback on finished";
     if (synth.isSpeaking){            // mn 2019 reintroduced this conditional
         [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
@@ -366,7 +367,7 @@ NSString* currentSpeechCallbackId;
     if (utterance.speechString==currentSpeechText){
         // mn 2018 - now only fires this callback if the most recently played speech is finished successfully - not after stop()
         // otherwise previous speech callback fires milliseconds after stop() which can be after the next play()
-        NSLog(@"Finished Speaking %@", utterance.speechString);
+        if (isDebug) NSLog(@"Finished Speaking %@", utterance.speechString);
         //NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.finishedSpeaking(\"%@\")",utterance.speechString];
         [self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
 
@@ -377,20 +378,20 @@ NSString* currentSpeechCallbackId;
         [pluginResult setKeepCallbackAsBool:NO];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:currentSpeechCallbackId];
     }else{
-        NSLog(@"Cancelled Speaking %@", utterance.speechString);
+        if (isDebug) NSLog(@"Cancelled Speaking %@", utterance.speechString);
     }
     //[self.commandDelegate evalJs:@"ttsPlugin.callbacks.finishedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didPauseSpeechUtterance:(AVSpeechUtterance *)utterance{
-    //NSLog(@"Paused Speaking %@", utterance);
+    if (isDebug) NSLog(@"Paused Speaking %@", utterance);
     [self.commandDelegate evalJs:@"ttsPlugin.callbacks.pausedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didContinueSpeechUtterance:(AVSpeechUtterance *)utterance{
-    //NSLog(@"Continued Speaking %@ ", utterance);
+    if (isDebug) NSLog(@"Continued Speaking %@ ", utterance);
     [self.commandDelegate evalJs:@"ttsPlugin.callbacks.continuedSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didCancelSpeechUtterance:(AVSpeechUtterance *)utterance{
-    //NSLog(@"Cancelled Speaking %@", utterance);
+    if (isDebug) NSLog(@"Cancelled Speaking %@", utterance);
     [self.commandDelegate evalJs:@"ttsPlugin.callbacks.cancelledSpeaking()"];
 }
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer willSpeakRangeOfSpeechString:(NSRange)characterRange utterance:(AVSpeechUtterance *)utterance{
