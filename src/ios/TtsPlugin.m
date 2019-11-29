@@ -130,6 +130,16 @@ bool isDebug = NO;
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *error;
 	
+    AVAudioSessionRouteDescription* currentRoute = [audioSession currentRoute];
+    AVAudioSessionPortDescription *inputPort = currentRoute.inputs[0];
+    if (inputPort.portType == AVAudioSessionPortCarAudio) {
+        NSLog(@"TTS Plugin: AVAudioSessionPortCarAudio %@", inputPort.portName);
+        if (inputPort.portName == @"CarPlay") {
+            NSLog(@"TTS Plugin: yay carplay!");
+            
+        }
+    }
+    
 	//was AVAudioSessionModeVideoChat
     bool success = [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
                                        mode:AVAudioSessionModeVideoRecording
@@ -144,9 +154,14 @@ bool isDebug = NO;
     }
     [self jlog:@"setAudioSessionPlayAndRecord looking for bluetooth handsfree"];
     NSArray* routes = [audioSession availableInputs];
+    
     for (AVAudioSessionPortDescription* route in routes) {
         if (route.portType == AVAudioSessionPortBluetoothHFP) {
             [self jlog:@"setAudioSessionPlayAndRecord found bluetooth handsfree"];
+            [audioSession setPreferredInput:route error:nil];
+        }
+        if (route.portType == AVAudioSessionPortCarAudio) {
+            [self jlog:@"setAudioSessionPlayAndRecord found car audio"];
             [audioSession setPreferredInput:route error:nil];
         }
     }
@@ -186,7 +201,9 @@ bool isDebug = NO;
 
 - (void)handleRouteChange:(NSNotification *)notification
 {
-    UInt8 reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
+    return;
+    
+    NSUInteger reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
     AVAudioSessionRouteDescription *routeDescription = [notification.userInfo valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
     
     if (isDebug) NSLog(@"Route change:");
@@ -210,6 +227,9 @@ bool isDebug = NO;
         case AVAudioSessionRouteChangeReasonNoSuitableRouteForCategory:
             NSLog(@"     NoSuitableRouteForCategory");
             break;
+        case AVAudioSessionRouteChangeReasonRouteConfigurationChange:
+            NSLog(@"     RouteConfigurationChange");
+            break;
         default:
             NSLog(@"     ReasonUnknown");
     }
@@ -218,31 +238,34 @@ bool isDebug = NO;
     NSError *error;
     
     AVAudioSessionRouteDescription *newRoute = session.currentRoute;
-    if (isDebug) NSLog(@"Previous route:\n");
-    if (isDebug) NSLog(@"%@\n", routeDescription);
-    if (isDebug) NSLog(@"Current route:\n");
-    if (isDebug) NSLog(@"%@\n", newRoute);
-    AVAudioSessionPortDescription *inputPort = newRoute.inputs[0];
-    NSString *inputName = inputPort.portName;
-    NSString *inputType = inputPort.portType;
-    AVAudioSessionPortDescription *outputPort = newRoute.outputs[0];
-    NSString *outputName = outputPort.portName;
-    NSString *outputType = outputPort.portType;
+    if (isDebug||true) NSLog(@"Previous route:\n");
+    if (isDebug||true) NSLog(@"%@\n", routeDescription);
+    if (isDebug||true) NSLog(@"Current route:\n");
+    if (isDebug||true) NSLog(@"%@\n", newRoute);
     
-    bool notify = true;
-    if ([outputType isEqual:@"Receiver"]){
-        bool success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
-                                             error:&error];
-    
-        if (success){
-        // about to change again, correctly this time
-            notify = false;
+    if (newRoute!=nil && newRoute.inputs!=nil && [newRoute.inputs count]>0 && newRoute.outputs!=nil && [newRoute.outputs count]>0){
+        AVAudioSessionPortDescription *inputPort = newRoute.inputs[0];
+        NSString *inputName = inputPort.portName;
+        NSString *inputType = inputPort.portType;
+        AVAudioSessionPortDescription *outputPort = newRoute.outputs[0];
+        NSString *outputName = outputPort.portName;
+        NSString *outputType = outputPort.portType;
+        
+        bool notify = true;
+        if ([outputType isEqual:@"Receiver"]){
+            bool success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
+                                                 error:&error];
+        
+            if (success){
+            // about to change again, correctly this time
+                notify = false;
+            }
         }
-    }
-    
-    if (notify){
-        NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.audioRouteChanged(\"%@\",\"%@\",\"%@\",\"%@\",\"%hhu\")",inputName,inputType,outputName,outputType,reasonValue];
-        [self.commandDelegate evalJs:jsString];
+        
+        if (notify){
+            NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.audioRouteChanged(\"%@\",\"%@\",\"%@\",\"%@\",\"%hhu\")",inputName,inputType,outputName,outputType,reasonValue];
+            [self.commandDelegate evalJs:jsString];
+        }
     }
 }
 
@@ -423,6 +446,7 @@ bool isDebug = NO;
 
 -(void) jlog:(NSString *)message
 {
+    NSLog(@"TTS Plugin: %@", message);
     NSString* jsString = [[NSString alloc] initWithFormat:@"window.jlog(\"TTS Plugin Log: %@\")",message];
     [self.commandDelegate evalJs:jsString];
 }
