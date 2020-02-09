@@ -14,7 +14,7 @@ double rate = 0.2;
 NSString *currentLocale;
 NSString *currentSpeechText = @"nothing yet";
 NSString* currentSpeechCallbackId;
-bool isDebug = NO;
+bool isDebug = YES;
 
 - (void)initTTS:(CDVInvokedUrlCommand*)command{
     synth = [[AVSpeechSynthesizer alloc] init];
@@ -49,11 +49,37 @@ bool isDebug = NO;
 //    }
     
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    
     // track route change notification
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleRouteChange:)
                                                  name:AVAudioSessionRouteChangeNotification
                                                object:audioSession];
+    
+    // track interruptions
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleInterruption:)
+                                                 name:AVAudioSessionInterruptionNotification
+                                               object:audioSession];
+    
+    // track interruptions
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleSecondaryAudio:)
+                                                 name:AVAudioSessionSilenceSecondaryAudioHintNotification
+                                               object:audioSession];
+    
+    // track interruptions
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleMediaServicesWereLost:)
+                                                 name:AVAudioSessionMediaServicesWereLostNotification
+                                               object:audioSession];
+    
+    // track interruptions
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleMediaServicesWereReset:)
+                                                 name:AVAudioSessionMediaServicesWereResetNotification
+                                               object:audioSession];
+    
 
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"OK"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -134,15 +160,15 @@ bool isDebug = NO;
     AVAudioSessionPortDescription *inputPort = currentRoute.inputs[0];
     if (inputPort.portType == AVAudioSessionPortCarAudio) {
         NSLog(@"TTS Plugin: AVAudioSessionPortCarAudio %@", inputPort.portName);
-        if (inputPort.portName == @"CarPlay") {
+        if ([inputPort.portName isEqualToString:@"CarPlay"]) {
             NSLog(@"TTS Plugin: yay carplay!");
-            
         }
     }
     
-	//was AVAudioSessionModeVideoChat
+    
+	//was AVAudioSessionModeVideoChat,AVAudioSessionModeVideoRecording
     bool success = [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                                       mode:AVAudioSessionModeVideoRecording
+                                       mode:AVAudioSessionModeSpokenAudio
                                     options:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionAllowBluetoothA2DP
                                       error:&error];
     if (!success) {
@@ -152,18 +178,26 @@ bool isDebug = NO;
     }else{
         [self jlog:@"setAudioSessionPlayAndRecord init audio session success"];
     }
-    [self jlog:@"setAudioSessionPlayAndRecord looking for bluetooth handsfree"];
-    NSArray* routes = [audioSession availableInputs];
     
+    
+    
+    [self jlog:@"setAudioSessionPlayAndRecord looking for bluetooth handsfree or carplay"];
+    NSArray* routes = [audioSession availableInputs];
+    AVAudioSessionPortDescription* bestRoute = nil;
     for (AVAudioSessionPortDescription* route in routes) {
         if (route.portType == AVAudioSessionPortBluetoothHFP) {
             [self jlog:@"setAudioSessionPlayAndRecord found bluetooth handsfree"];
-            [audioSession setPreferredInput:route error:nil];
+            bestRoute = route;
         }
+    }
+    for (AVAudioSessionPortDescription* route in routes) {
         if (route.portType == AVAudioSessionPortCarAudio) {
-            [self jlog:@"setAudioSessionPlayAndRecord found car audio"];
-            [audioSession setPreferredInput:route error:nil];
+            [self jlog:@"setAudioSessionPlayAndRecord found car audio, better than bluetooth HFP"];
+            bestRoute = route;
         }
+    }
+    if (bestRoute){
+        [audioSession setPreferredInput:bestRoute error:nil];
     }
     
     //[audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
@@ -173,7 +207,11 @@ bool isDebug = NO;
         NSLog(@"setAudioSessionPlayAndRecord Error setting session active! %@\n", [error localizedDescription]);
         [self sendErrorWithMessage:@"TTS setAudioSessionPlayAndRecord: Error setting audio session active" sourceMessage:error.localizedDescription command:command];
         return;
+    }else{
+        NSLog(@"setAudioSessionPlayAndRecord session active");
     }
+    
+    
 }
 
 - (void)setAudioSessionPlayback:(CDVInvokedUrlCommand*)command{
@@ -201,7 +239,8 @@ bool isDebug = NO;
 
 - (void)handleRouteChange:(NSNotification *)notification
 {
-    return;
+    
+ // 20200127 removed return, need for end car journey   return;
     
     NSUInteger reasonValue = [[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey] intValue];
     AVAudioSessionRouteDescription *routeDescription = [notification.userInfo valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
@@ -216,7 +255,7 @@ bool isDebug = NO;
             break;
         case AVAudioSessionRouteChangeReasonCategoryChange:
             NSLog(@"     CategoryChange");
-            NSLog(@" New Category: %@", [[AVAudioSession sharedInstance] category]);
+            //NSLog(@" New Category: %@", [[AVAudioSession sharedInstance] category]);
             break;
         case AVAudioSessionRouteChangeReasonOverride:
             NSLog(@"     Override");
@@ -253,9 +292,9 @@ bool isDebug = NO;
         
         bool notify = true;
         if ([outputType isEqual:@"Receiver"]){
-            bool success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
-                                                 error:&error];
-        
+            // try to push user away from reciever and on to speaker as this is usually what is wanted
+            // it seems to go on to the receiver by itself incorrectly
+            bool success = [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
             if (success){
             // about to change again, correctly this time
                 notify = false;
@@ -263,13 +302,93 @@ bool isDebug = NO;
         }
         
         if (notify){
-            NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.audioRouteChanged(\"%@\",\"%@\",\"%@\",\"%@\",\"%hhu\")",inputName,inputType,outputName,outputType,reasonValue];
+            NSString* jsString = [[NSString alloc] initWithFormat:@"ttsPlugin.callbacks.audioRouteChanged(\"%@\",\"%@\",\"%@\",\"%@\",\"%lu\")",inputName,inputType,outputName,outputType,reasonValue];
             [self.commandDelegate evalJs:jsString];
         }
     }
+    
+    // example
+//    2020-01-27 13:40:37.513932+1300 SpeakingEmail[2380:899637]      OldDeviceUnavailable
+//    2020-01-27 13:40:37.516228+1300 SpeakingEmail[2380:899637] Previous route:
+//    2020-01-27 13:40:37.516743+1300 SpeakingEmail[2380:899637] <AVAudioSessionRouteDescription: 0x2810f6960,
+//    inputs = (
+//              "<AVAudioSessionPortDescription: 0x2810f7c30, type = MicrophoneBuiltIn; name = iPhone Microphone; UID = Built-In Microphone; selectedDataSource = Front>"
+//              );
+//    outputs = (
+//               "<AVAudioSessionPortDescription: 0x2810f7e70, type = CarAudio; name = CarPlay; UID = 10:98:C3:B1:8C:F8-Audio-AudioMain-245135381192083; selectedDataSource = (null)>"
+//               )>
+//    2020-01-27 13:40:37.517853+1300 SpeakingEmail[2380:899637] Current route:
+//    2020-01-27 13:40:37.518012+1300 SpeakingEmail[2380:899637] <AVAudioSessionRouteDescription: 0x2810d6040,
+//    inputs = (
+//              "<AVAudioSessionPortDescription: 0x2810d5d30, type = MicrophoneBuiltIn; name = iPhone Microphone; UID = Built-In Microphone; selectedDataSource = Front>"
+//              );
+//    outputs = (
+//               "<AVAudioSessionPortDescription: 0x2810d71d0, type = Speaker; name = Speaker; UID = Speaker; selectedDataSource = (null)>"
+//               )>
 }
 
-- (void)handleMediaServerReset:(NSNotification *)notification
+ - (void)handleInterruption:(NSNotification *)notification
+{
+    [self jlog:@"handleInterruption notification"];
+    NSDictionary *userInfo = notification.userInfo;
+    NSInteger interuptionType = [[userInfo valueForKey:AVAudioSessionInterruptionTypeKey] integerValue];
+    switch (interuptionType) {
+        case AVAudioSessionInterruptionTypeBegan:
+            NSLog(@"Audio Session Interruption case started.");
+    [synth stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
+            [self jlog:@"handleInterruption BEGIN"];
+            [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleInterruptionStart()"];
+            break;
+            
+        case AVAudioSessionInterruptionTypeEnded:
+            NSLog(@"Audio Session Interruption case ended.");
+            NSInteger interuptionOption = [[userInfo valueForKey:AVAudioSessionInterruptionOptionKey] integerValue];
+            if (interuptionOption==AVAudioSessionInterruptionOptionShouldResume){
+                NSLog(@"Audio Session Interruption case ended SHOULD RESUME.");
+            [synth continueSpeaking];
+                [self jlog:@"handleInterruption SHOULD RESUME"];
+                [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleInterruptionEnd(true)"];
+            }else{
+                NSLog(@"Audio Session Interruption case ended SHOULD NOT RESUME.");
+                [self jlog:@"handleInterruption SHOULD NOT RESUME"];
+                [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleInterruptionEnd(false)"];
+            }
+            break;
+            
+        default:
+            NSLog(@"Audio Session Interruption Notification case default.");
+            break;
+    }
+}
+ 
+ - (void)handleSecondaryAudio:(NSNotification *)notification
+{
+    [self jlog:@"handleSecondaryAudio notification"];
+    NSDictionary *userInfo = notification.userInfo;
+    NSInteger hintType = [[userInfo valueForKey:AVAudioSessionSilenceSecondaryAudioHintTypeKey] integerValue];
+    if (hintType==AVAudioSessionSilenceSecondaryAudioHintTypeBegin){
+        [self jlog:@"handleSecondaryAudio BEGIN"];
+        NSLog(@"Audio Session AVAudioSessionSilenceSecondaryAudioHintTypeBegin case BEGIN.");
+        // just treat same as interruption - have never seen it happen yet but seems like it should be same handling
+        [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleInterruptionStart()"];
+    }else{
+        [self jlog:@"handleSecondaryAudio END"];
+        NSLog(@"Audio Session AVAudioSessionSilenceSecondaryAudioHintTypeBegin case END.");
+        [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleInterruptionEnd(true)"];
+    }
+}
+ 
+ - (void)handleMediaServicesWereLost:(NSNotification *)notification
+{
+    [self jlog:@"handleSMediaServicesWereLost notification"];
+}
+ 
+ - (void)handleMediaServicesWereReset:(NSNotification *)notification
+{
+    [self jlog:@"handleSMediaServicesWereReset notification"];
+}
+ 
+ - (void)handleMediaServerReset:(NSNotification *)notification
 {
     [self jlog:@"Media server has reset"];
     [self.commandDelegate evalJs:@"ttsPlugin.callbacks.handleMediaServerReset()"];

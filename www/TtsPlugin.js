@@ -198,6 +198,12 @@ tts.prototype.callbacks = {
     handleMediaServerReset: function(){
     	console.log("handleMediaServerReset");
     },
+    handleInterruptionStart: function(){
+        console.log("handleMediaServerReset");
+    },
+    handleInterruptionEnd: function(shouldResume){
+        console.log("handleInterruptionEnd " + shouldResume);
+    },
 };
 
 var tts = new tts();
